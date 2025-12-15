@@ -271,7 +271,47 @@
         .n8n-chat-widget .chat-footer a:hover {
             opacity: 1;
         }
+
+
+        // Loading typing indicator styles
+        .n8n-chat-widget .typing-indicator {
+        display: inline-flex;
+        gap: 6px;
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 12px;
+        background: var(--chat--color-background);
+        border: 1px solid rgba(133, 79, 255, 0.2);
+        align-self: flex-start;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .n8n-chat-widget .typing-indicator span {
+        width: 6px;
+        height: 6px;
+        background-color: var(--chat--color-primary);
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .n8n-chat-widget .typing-indicator span:nth-child(1) {
+        animation-delay: 0s;
+    }
+    .n8n-chat-widget .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    .n8n-chat-widget .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0% { opacity: 0.3; }
+        20% { opacity: 1; }
+        100% { opacity: 0.3; }
+    }
     `;
+
+    const INITIAL_MESSAGE = config.branding.welcomeText;
 
     // Load Geist font
     const fontLink = document.createElement('link');
@@ -384,6 +424,30 @@
     const textarea = chatContainer.querySelector('textarea');
     const sendButton = chatContainer.querySelector('button[type="submit"]');
 
+    let typingIndicatorEl = null;
+
+    function showTypingIndicator() {
+        if (typingIndicatorEl) return;
+
+        typingIndicatorEl = document.createElement('div');
+        typingIndicatorEl.className = 'typing-indicator';
+        typingIndicatorEl.innerHTML = `
+            <span></span>
+            <span></span>
+            <span></span>
+        `;
+
+        messagesContainer.appendChild(typingIndicatorEl);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        if (!typingIndicatorEl) return;
+
+        typingIndicatorEl.remove();
+        typingIndicatorEl = null;
+    }
+
     function generateUUID() {
         return crypto.randomUUID();
     }
@@ -413,10 +477,12 @@
             chatContainer.querySelector('.new-conversation').style.display = 'none';
             chatInterface.classList.add('active');
 
+            // Mensagem inicial do bot (frontend)
             const botMessageDiv = document.createElement('div');
             botMessageDiv.className = 'chat-message bot';
-            botMessageDiv.textContent = Array.isArray(responseData) ? responseData[0].output : responseData.output;
+            botMessageDiv.textContent = config.branding.welcomeText;
             messagesContainer.appendChild(botMessageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             console.error('Error:', error);
@@ -440,6 +506,9 @@
         messagesContainer.appendChild(userMessageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
+        // 👇 MOSTRAR loading
+        showTypingIndicator();
+
         try {
             const response = await fetch(config.webhook.url, {
                 method: 'POST',
@@ -450,6 +519,9 @@
             });
             
             const data = await response.json();
+
+            // 👇 ESCONDER loading
+            hideTypingIndicator();
             
             const botMessageDiv = document.createElement('div');
             botMessageDiv.className = 'chat-message bot';
@@ -458,6 +530,7 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             console.error('Error:', error);
+            hideTypingIndicator();
         }
     }
 
