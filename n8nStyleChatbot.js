@@ -15,15 +15,25 @@
             bottom: 20px;
             right: 20px;
             z-index: 1000;
-            display: none;
             width: 380px;
             height: 600px;
             background: var(--chat--color-background);
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(133, 79, 255, 0.15);
-            border: 1px solid rgba(133, 79, 255, 0.2);
+            box-shadow: 0 8px 32px #05668d;
+            border: 1px solid #05668d;
             overflow: hidden;
             font-family: inherit;
+
+            /* 🔥 Animação */
+            opacity: 0;
+            transform: translateY(20px) scale(0.96);
+            visibility: hidden;
+            pointer-events: none;
+
+            transition:
+                opacity 0.3s ease,
+                transform 0.3s ease,
+                visibility 0.3s ease;
         }
 
         .n8n-chat-widget .chat-container.position-left {
@@ -32,6 +42,11 @@
         }
 
         .n8n-chat-widget .chat-container.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            visibility: visible;
+            pointer-events: auto;
+
             display: flex;
             flex-direction: column;
         }
