@@ -78,7 +78,7 @@
             color: var(--chat--color-font);
         }
 
-        .n8n-chat-widget .new-conversation {
+        /*.n8n-chat-widget .new-conversation {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -87,7 +87,7 @@
             text-align: center;
             width: 100%;
             max-width: 300px;
-        }
+        }*/
 
         .n8n-chat-widget .welcome-text {
             font-size: 24px;
@@ -97,7 +97,7 @@
             line-height: 1.3;
         }
 
-        .n8n-chat-widget .new-chat-btn {
+        /*.n8n-chat-widget .new-chat-btn {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -114,7 +114,7 @@
             font-weight: 500;
             font-family: inherit;
             margin-bottom: 12px;
-        }
+        }*/
 
         .n8n-chat-widget .new-chat-btn:hover {
             transform: scale(1.02);
@@ -273,18 +273,18 @@
         }
 
 
-        // Loading typing indicator styles
+        /* Loading typing indicator styles */
         .n8n-chat-widget .typing-indicator {
-        display: inline-flex;
-        gap: 6px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        border-radius: 12px;
-        background: var(--chat--color-background);
-        border: 1px solid rgba(133, 79, 255, 0.2);
-        align-self: flex-start;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
+            display: inline-flex;
+            gap: 6px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 12px;
+            background: var(--chat--color-background);
+            border: 1px solid rgba(133, 79, 255, 0.2);
+            align-self: flex-start;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        } 
 
     .n8n-chat-widget .typing-indicator span {
         width: 6px;
@@ -310,8 +310,6 @@
         100% { opacity: 0.3; }
     }
     `;
-
-    const INITIAL_MESSAGE = config.branding.welcomeText;
 
     // Load Geist font
     const fontLink = document.createElement('link');
@@ -372,7 +370,7 @@
     const chatContainer = document.createElement('div');
     chatContainer.className = `chat-container${config.style.position === 'left' ? ' position-left' : ''}`;
     
-    const newConversationHTML = `
+    /*const newConversationHTML = `
         <div class="brand-header">
             <img src="${config.branding.logo}" alt="${config.branding.name}">
             <span>${config.branding.name}</span>
@@ -388,7 +386,7 @@
             </button>
             <p class="response-text">${config.branding.responseTimeText}</p>
         </div>
-    `;
+    `;*/
 
     const chatInterfaceHTML = `
         <div class="chat-interface">
@@ -405,7 +403,7 @@
         </div>
     `;
     
-    chatContainer.innerHTML = newConversationHTML + chatInterfaceHTML;
+    chatContainer.innerHTML = chatInterfaceHTML;
     
     const toggleButton = document.createElement('button');
     toggleButton.className = `chat-toggle${config.style.position === 'left' ? ' position-left' : ''}`;
@@ -418,9 +416,17 @@
     widgetContainer.appendChild(toggleButton);
     document.body.appendChild(widgetContainer);
 
-    const newChatBtn = chatContainer.querySelector('.new-chat-btn');
     const chatInterface = chatContainer.querySelector('.chat-interface');
+    const closeButton = chatContainer.querySelector('.close-button');
+
+    closeButton.addEventListener('click', () => {
+        chatContainer.classList.remove('open');
+    });
     const messagesContainer = chatContainer.querySelector('.chat-messages');
+
+    // Ativar chat imediatamente
+    chatInterface.classList.add('active');
+
     const textarea = chatContainer.querySelector('textarea');
     const sendButton = chatContainer.querySelector('button[type="submit"]');
 
@@ -448,48 +454,25 @@
         typingIndicatorEl = null;
     }
 
+    function addInitialBotMessage() {
+        const botMessageDiv = document.createElement('div');
+        botMessageDiv.className = 'chat-message bot';
+        botMessageDiv.textContent = 'Olá, nós somos a TeamMate! Em que podemos ajudar?';
+
+        messagesContainer.appendChild(botMessageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
     function generateUUID() {
         return crypto.randomUUID();
     }
 
-    async function startNewConversation() {
-        currentSessionId = generateUUID();
-        const data = [{
-            action: "loadPreviousSession",
-            sessionId: currentSessionId,
-            route: config.webhook.route,
-            metadata: {
-                userId: ""
-            }
-        }];
-
-        try {
-            const response = await fetch(config.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            const responseData = await response.json();
-            chatContainer.querySelector('.brand-header').style.display = 'none';
-            chatContainer.querySelector('.new-conversation').style.display = 'none';
-            chatInterface.classList.add('active');
-
-            // Mensagem inicial do bot (frontend)
-            const botMessageDiv = document.createElement('div');
-            botMessageDiv.className = 'chat-message bot';
-            botMessageDiv.textContent = config.branding.welcomeText;
-            messagesContainer.appendChild(botMessageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
     async function sendMessage(message) {
+
+        if (!currentSessionId) {
+        currentSessionId = generateUUID();
+        }
+
         const messageData = {
             action: "sendMessage",
             sessionId: currentSessionId,
@@ -533,8 +516,6 @@
             hideTypingIndicator();
         }
     }
-
-    newChatBtn.addEventListener('click', startNewConversation);
     
     sendButton.addEventListener('click', () => {
         const message = textarea.value.trim();
@@ -555,15 +536,15 @@
         }
     });
     
-    toggleButton.addEventListener('click', () => {
-        chatContainer.classList.toggle('open');
-    });
+    let initialMessageShown = false;
 
-    // Add close button handlers
-    const closeButtons = chatContainer.querySelectorAll('.close-button');
-    closeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            chatContainer.classList.remove('open');
-        });
+    toggleButton.addEventListener('click', () => {
+        chatContainer.classList.add('open');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        if (!initialMessageShown) {
+            addInitialBotMessage();
+            initialMessageShown = true;
+        }
     });
 })();
