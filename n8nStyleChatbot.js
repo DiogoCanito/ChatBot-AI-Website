@@ -26,14 +26,41 @@
 
             /* 🔥 Animação */
             opacity: 0;
-            transform: translateY(20px) scale(0.96);
             visibility: hidden;
             pointer-events: none;
+            will-change: transform, opacity;
+        }
 
-            transition:
-                opacity 0.3s ease,
-                transform 0.3s ease,
-                visibility 0.3s ease;
+        /* ===============================
+        POP NOTIFICATION ANIMATIONS
+        ================================ */
+
+        @keyframes chatPopIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(-4px) scale(1.02);
+            }
+            80% {
+                transform: translateY(2px) scale(0.99);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes chatPopOut {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
         }
 
         .n8n-chat-widget .chat-container.position-left {
@@ -43,13 +70,19 @@
 
         .n8n-chat-widget .chat-container.open {
             opacity: 1;
-            transform: translateY(0) scale(1);
             visibility: visible;
             pointer-events: auto;
 
             display: flex;
             flex-direction: column;
+
+            animation: chatPopIn 0.45s cubic-bezier(0.22, 1.2, 0.36, 1);
         }
+
+        .n8n-chat-widget .chat-container.closing {
+            animation: chatPopOut 0.25s ease forwards;
+        }
+
 
         .n8n-chat-widget .brand-header {
             padding: 16px;
@@ -435,7 +468,11 @@
     const closeButton = chatContainer.querySelector('.close-button');
 
     closeButton.addEventListener('click', () => {
-        chatContainer.classList.remove('open');
+        chatContainer.classList.add('closing');
+
+        setTimeout(() => {
+            chatContainer.classList.remove('open', 'closing');
+        }, 250);
     });
     const messagesContainer = chatContainer.querySelector('.chat-messages');
 
@@ -554,7 +591,9 @@
     let initialMessageShown = false;
 
     toggleButton.addEventListener('click', () => {
+        chatContainer.classList.remove('closing'); // 🔥 MUITO IMPORTANTE
         chatContainer.classList.add('open');
+
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         if (!initialMessageShown) {
