@@ -77,6 +77,7 @@
             flex-direction: column;
 
             animation: chatPopIn 0.45s cubic-bezier(0.22, 1.2, 0.36, 1);
+            animation-fill-mode: both;
         }
 
         .n8n-chat-widget .chat-container.closing {
@@ -591,7 +592,16 @@
     let initialMessageShown = false;
 
     toggleButton.addEventListener('click', () => {
-        chatContainer.classList.remove('closing'); // 🔥 MUITO IMPORTANTE
+        chatContainer.classList.remove('closing');
+
+        // 🔥 Forçar o estado inicial visível mas com opacity 0
+        chatContainer.style.visibility = 'visible';
+        chatContainer.style.opacity = '0';
+
+        // 🔥 Forçar reflow (força o browser a reconhecer o estado inicial)
+        chatContainer.offsetHeight;
+
+        // 🔥 Agora aplica a classe open que dispara a animação
         chatContainer.classList.add('open');
 
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
