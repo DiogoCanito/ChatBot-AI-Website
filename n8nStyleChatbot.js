@@ -592,23 +592,25 @@
     let initialMessageShown = false;
 
     toggleButton.addEventListener('click', () => {
-        chatContainer.classList.remove('closing');
+        if (chatContainer.classList.contains('open')) {
+            // Se estiver aberto, fecha
+            chatContainer.classList.add('closing');
 
-        // 🔥 Forçar o estado inicial visível mas com opacity 0
-        chatContainer.style.visibility = 'visible';
-        chatContainer.style.opacity = '0';
+            // Remove a classe open depois da animação de fechar
+            setTimeout(() => {
+                chatContainer.classList.remove('open', 'closing');
+            }, 250);
+        } else {
+            // Se estiver fechado, abre
+            chatContainer.classList.remove('closing');
+            chatContainer.classList.add('open');
 
-        // 🔥 Forçar reflow (força o browser a reconhecer o estado inicial)
-        chatContainer.offsetHeight;
-
-        // 🔥 Agora aplica a classe open que dispara a animação
-        chatContainer.classList.add('open');
+            if (!initialMessageShown) {
+                addInitialBotMessage();
+                initialMessageShown = true;
+            }
+        }
 
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        if (!initialMessageShown) {
-            addInitialBotMessage();
-            initialMessageShown = true;
-        }
     });
 })();
